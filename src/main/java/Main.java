@@ -19,7 +19,9 @@ public class Main {
             while (true) {
                 OutputStream outputStream = clientSocket.getOutputStream();
                 InputStream inputStream = clientSocket.getInputStream();
-                while (!clientSocket.isClosed()) {
+                byte[] data;
+                while (inputStream.available() > 0) {
+                    data = inputStream.readNBytes(inputStream.available());
                     outputStream.write("+PONG\r\n".getBytes());
                     outputStream.flush();
                 }
