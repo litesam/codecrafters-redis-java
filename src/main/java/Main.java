@@ -26,7 +26,7 @@ public class Main {
              var inputStream = clientSocket.getInputStream()
         ) {
             byte[] data;
-            while (inputStream.available() > 0) {
+            while (true) {
                 data = inputStream.readNBytes(inputStream.available());
                 outputStream.write("+PONG\r\n".getBytes());
                 outputStream.flush();
