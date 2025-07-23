@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ThreadFactory;
 
 public class Main {
     public static void main(String[] args) {
@@ -12,7 +13,7 @@ public class Main {
             serverSocket.setReuseAddress(true);
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                new Thread(() -> handleClient(clientSocket)).start();
+                Thread.ofVirtual().start(() -> handleClient(clientSocket));
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
@@ -22,16 +23,14 @@ public class Main {
     private static void handleClient(Socket clientSocket) {
         try (clientSocket;
              var outputStream = clientSocket.getOutputStream();
-             var in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
+             var inputStream = clientSocket.getInputStream()
         ) {
-            while (!clientSocket.isClosed()) {
-                if (in.readLine() == null) {
-                    break;
-                }
-                in.readLine();
-                String line = in.readLine();
-                outputStream.write("PONG\r\n".getBytes());
+            byte[] data;
+            while (inputStream.available() > 0) {
+                data = inputStream.readNBytes(inputStream.available());
+                outputStream.write("+PONG\r\n".getBytes());
                 outputStream.flush();
+                System.out.println("Written data to the client!");
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
