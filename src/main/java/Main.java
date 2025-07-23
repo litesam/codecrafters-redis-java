@@ -1,6 +1,4 @@
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -9,31 +7,34 @@ public class Main {
         // You can use print statements as follows for debugging, they'll be visible when running tests.
         System.out.println("Logs from your program will appear here!");
 
-        ServerSocket serverSocket = null;
-        Socket clientSocket = null;
         int port = 6379;
-        try {
-            serverSocket = new ServerSocket(port);
+        try (var serverSocket = new ServerSocket(port)) {
             serverSocket.setReuseAddress(true);
-            clientSocket = serverSocket.accept();
             while (true) {
-                OutputStream outputStream = clientSocket.getOutputStream();
-                InputStream inputStream = clientSocket.getInputStream();
-                while (!clientSocket.isClosed()) {
-                    outputStream.write("+PONG\r\n".getBytes());
-                    outputStream.flush();
-                }
+                Socket clientSocket = serverSocket.accept();
+                new Thread(() -> handleClient(clientSocket)).start();
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
-        } finally {
-            try {
-                if (clientSocket != null) {
-                    clientSocket.close();
+        }
+    }
+
+    private static void handleClient(Socket clientSocket) {
+        try (clientSocket;
+             var outputStream = clientSocket.getOutputStream();
+             var in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
+        ) {
+            while (!clientSocket.isClosed()) {
+                if (in.readLine() == null) {
+                    break;
                 }
-            } catch (IOException e) {
-                System.out.println("IOException: " + e.getMessage());
+                in.readLine();
+                String line = in.readLine();
+                outputStream.write("PONG\r\n".getBytes());
+                outputStream.flush();
             }
+        } catch (IOException e) {
+            System.out.println("IOException: " + e.getMessage());
         }
     }
 }
