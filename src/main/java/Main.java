@@ -23,14 +23,18 @@ public class Main {
     private static void handleClient(Socket clientSocket) {
         try (clientSocket;
              var outputStream = clientSocket.getOutputStream();
-             var inputStream = clientSocket.getInputStream()
+             var in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
         ) {
-            byte[] data;
             while (true) {
-                data = inputStream.readNBytes(inputStream.available());
+                String line = in.readLine();
+                if (line == null) {
+                    break;
+                }
+                line = in.readLine();
+                line = in.readLine();
+                System.out.println("Read content: " + line);
+
                 outputStream.write("+PONG\r\n".getBytes());
-                outputStream.flush();
-                System.out.println("Written data to the client!");
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
