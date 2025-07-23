@@ -35,6 +35,7 @@ public class Main {
                 System.out.println("Read content: " + line);
 
                 outputStream.write("+PONG\r\n".getBytes());
+                System.out.println("Wrote Content");
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
