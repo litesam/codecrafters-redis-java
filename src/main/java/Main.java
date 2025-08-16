@@ -1,7 +1,10 @@
+import com.redis.CommandHandler;
+import com.redis.RespParser;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ThreadFactory;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -13,6 +16,7 @@ public class Main {
             serverSocket.setReuseAddress(true);
             while (true) {
                 Socket clientSocket = serverSocket.accept();
+                System.out.println("Client connected: " + clientSocket.getInetAddress());
                 Thread.ofVirtual().start(() -> handleClient(clientSocket));
             }
         } catch (IOException e) {
@@ -23,19 +27,19 @@ public class Main {
     private static void handleClient(Socket clientSocket) {
         try (clientSocket;
              var outputStream = clientSocket.getOutputStream();
-             var in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
+             var inputStream = clientSocket.getInputStream()
         ) {
+            RespParser parser = new RespParser(inputStream);
+            CommandHandler commandHandler = new CommandHandler();
             while (true) {
-                String line = in.readLine();
-                if (line == null) {
+                List<String> commandParts = parser.parseCommand();
+                if (commandParts == null) {
+                    System.out.println("Client disconnected.");
                     break;
                 }
-                line = in.readLine();
-                line = in.readLine();
-                System.out.println("Read content: " + line);
-
-                outputStream.write("+PONG\r\n".getBytes());
-                System.out.println("Wrote Content");
+                System.out.println("Received command: " + commandParts);
+                commandHandler.handleCommand(commandParts, outputStream);
+                outputStream.flush();
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
