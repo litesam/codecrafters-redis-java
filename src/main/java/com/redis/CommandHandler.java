@@ -1,8 +1,6 @@
 package com.redis;
 
-import com.redis.commands.Command;
-import com.redis.commands.EchoCommand;
-import com.redis.commands.PingCommand;
+import com.redis.commands.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,11 +10,15 @@ import java.util.Map;
 
 public class CommandHandler {
     private final Map<String, Command> commands;
+    private final DataStore dataStore;
 
-    public CommandHandler() {
+    public CommandHandler(DataStore dataStore) {
         commands = new HashMap<>();
+        this.dataStore = dataStore;
         registerCommand(new PingCommand());
         registerCommand(new EchoCommand());
+        registerCommand(new SetCommand(dataStore));
+        registerCommand(new GetCommand(dataStore));
     }
 
     private void registerCommand(Command command) {
@@ -29,7 +31,7 @@ public class CommandHandler {
             return;
         }
 
-        String commandName = commandParts.get(0).toUpperCase();
+        String commandName = commandParts.getFirst().toUpperCase();
         List<String> args = commandParts.subList(1, commandParts.size());
 
         Command command = commands.get(commandName);

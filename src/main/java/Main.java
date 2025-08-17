@@ -1,4 +1,5 @@
 import com.redis.CommandHandler;
+import com.redis.DataStore;
 import com.redis.RespParser;
 
 import java.io.*;
@@ -14,23 +15,24 @@ public class Main {
         int port = 6379;
         try (var serverSocket = new ServerSocket(port)) {
             serverSocket.setReuseAddress(true);
+            DataStore dataStore = new DataStore();
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Client connected: " + clientSocket.getInetAddress());
-                Thread.ofVirtual().start(() -> handleClient(clientSocket));
+                Thread.ofVirtual().start(() -> handleClient(clientSocket, dataStore));
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
         }
     }
 
-    private static void handleClient(Socket clientSocket) {
+    private static void handleClient(Socket clientSocket, DataStore dataStore) {
         try (clientSocket;
              var outputStream = clientSocket.getOutputStream();
              var inputStream = clientSocket.getInputStream()
         ) {
             RespParser parser = new RespParser(inputStream);
-            CommandHandler commandHandler = new CommandHandler();
+            CommandHandler commandHandler = new CommandHandler(dataStore);
             while (true) {
                 List<String> commandParts = parser.parseCommand();
                 if (commandParts == null) {
