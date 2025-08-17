@@ -19,7 +19,7 @@ public class GetCommand implements Command {
     public void execute(List<String> args, OutputStream outputStream) throws IOException {
         var key = args.getFirst();
         var value = dataStore.get(key);
-        if (key == null) {
+        if (value == null) {
             outputStream.write((RespConstants.BULK_STRING_PREFIX + "-1" + RespConstants.CR_LF).getBytes());
         } else {
             String response = String.valueOf(RespConstants.BULK_STRING_PREFIX) + value.length()
