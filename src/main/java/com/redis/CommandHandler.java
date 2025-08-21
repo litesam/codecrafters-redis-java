@@ -1,6 +1,7 @@
 package com.redis;
 
 import com.redis.commands.*;
+import com.redis.config.ConfigStore;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -10,15 +11,14 @@ import java.util.Map;
 
 public class CommandHandler {
     private final Map<String, Command> commands;
-    private final DataStore dataStore;
 
-    public CommandHandler(DataStore dataStore) {
+    public CommandHandler(DataStore dataStore, ConfigStore configStore) {
         commands = new HashMap<>();
-        this.dataStore = dataStore;
         registerCommand(new PingCommand());
         registerCommand(new EchoCommand());
         registerCommand(new SetCommand(dataStore));
         registerCommand(new GetCommand(dataStore));
+        registerCommand(new ConfigCommand(configStore));
     }
 
     private void registerCommand(Command command) {
