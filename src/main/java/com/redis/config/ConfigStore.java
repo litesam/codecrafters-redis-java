@@ -12,6 +12,8 @@ public class ConfigStore {
 
     public ConfigStore() {
         this.configMap = new ConcurrentHashMap<>();
+        this.configMap.put("dir", "/tmp/redis-data");
+        this.configMap.put("dbfilename", "dump.rdb");
     }
 
     public String get(String key) {

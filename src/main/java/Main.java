@@ -23,8 +23,8 @@ public class Main {
             String dirValue = dir.orElse("/tmp/redis-files");
             String dbfileName = db.orElse("dump.rdb");
             ConfigStore configStore = new ConfigStore();
-            configStore.set(ArgsParser.DIR, dirValue);
-            configStore.set(ArgsParser.DBFILENAME, dbfileName);
+            configStore.set(ArgsParser.DIR.substring(2), dirValue);
+            configStore.set(ArgsParser.DBFILENAME.substring(2), dbfileName);
             DataStore dataStore = new DataStore();
             while (true) {
                 Socket clientSocket = serverSocket.accept();
