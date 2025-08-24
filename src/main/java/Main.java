@@ -8,6 +8,7 @@ import com.redis.util.RdbParser;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -31,9 +32,11 @@ public class Main {
             DataStore dataStore = new DataStore();
             RdbParser rdbParser;
             final var dbPath = Paths.get(dirValue, dbfileName);
-            try (final InputStream fis = new FileInputStream(dbPath.toFile())) {
-                rdbParser = new RdbParser(fis, dataStore);
-                rdbParser.load();
+            if (Files.exists(dbPath)) {
+                try (final InputStream fis = new FileInputStream(dbPath.toFile())) {
+                    rdbParser = new RdbParser(fis, dataStore);
+                    rdbParser.load();
+                }
             }
             while (true) {
                 Socket clientSocket = serverSocket.accept();
