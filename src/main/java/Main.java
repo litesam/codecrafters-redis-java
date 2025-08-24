@@ -3,10 +3,13 @@ import com.redis.DataStore;
 import com.redis.RespParser;
 import com.redis.config.ConfigStore;
 import com.redis.util.ArgsParser;
+import com.redis.util.RdbParser;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +29,12 @@ public class Main {
             configStore.set(ArgsParser.DIR.substring(2), dirValue);
             configStore.set(ArgsParser.DBFILENAME.substring(2), dbfileName);
             DataStore dataStore = new DataStore();
+            RdbParser rdbParser;
+            final var dbPath = Paths.get(dirValue, dbfileName);
+            try (final InputStream fis = new FileInputStream(dbPath.toFile())) {
+                rdbParser = new RdbParser(fis, dataStore);
+                rdbParser.load();
+            }
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Client connected: " + clientSocket.getInetAddress());

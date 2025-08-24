@@ -1,6 +1,12 @@
 package com.redis;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class DataStore {
     private final ConcurrentHashMap<String, DataEntry> store;
@@ -38,5 +44,37 @@ public class DataStore {
             return false;
         }
         return true;
+    }
+
+    public Set<String> getMatchingKeys(String pattern) {
+        String regex = pattern
+                .replace(".", "\\.")
+                .replace("*", ".*")
+                .replace("?", ".");
+
+        Pattern compiledPattern;
+        try {
+            compiledPattern = Pattern.compile(regex);
+        } catch (PatternSyntaxException e) {
+            System.err.println("Invalid regex pattern derived for KEYS: " + regex);
+            return Collections.emptySet();
+        }
+
+        Set<String> matchingKeys = new LinkedHashSet<>();
+
+        for (Map.Entry<String, DataEntry> entry : store.entrySet()) {
+            String key = entry.getKey();
+            DataEntry dataEntry = entry.getValue();
+
+            if (dataEntry.hasExpired()) {
+                store.remove(key);
+                continue;
+            }
+
+            if (compiledPattern.matcher(key).matches()) {
+                matchingKeys.add(key);
+            }
+        }
+        return matchingKeys;
     }
 }

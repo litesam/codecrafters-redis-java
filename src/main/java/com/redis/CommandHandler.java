@@ -19,6 +19,7 @@ public class CommandHandler {
         registerCommand(new SetCommand(dataStore));
         registerCommand(new GetCommand(dataStore));
         registerCommand(new ConfigCommand(configStore));
+        registerCommand(new KeyCommand(dataStore));
     }
 
     private void registerCommand(Command command) {
