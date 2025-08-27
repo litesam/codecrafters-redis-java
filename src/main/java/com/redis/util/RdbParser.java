@@ -21,8 +21,6 @@ public class RdbParser {
         // Database section
         // End of file section
         parseHeader();
-        final var redisVersion = parseVersion();
-        System.out.println("version: " + redisVersion);
 
         Integer databaseNumber = 0;
 
@@ -30,6 +28,7 @@ public class RdbParser {
             final var opcode = inputStream.readNBytes(1)[0];
             if (opcode == RdbConstants.END_OF_FILE) {
                 System.out.println("Reached end of file for rdb");
+                break;
             }
 
             switch (opcode) {
@@ -42,12 +41,19 @@ public class RdbParser {
                     databaseNumber = readUnsignedByte();
                     System.out.printf("databaseNumber: %d\n", databaseNumber);
                 }
+                case RdbConstants.HASH_TABLE_SIZE -> {
+                    final var hashTableSize = readLength();
+                    System.out.printf("hashTableSize: %d\n", hashTableSize);
+
+                    final var expireHashTableSize = readLength();
+                    System.out.printf("expireHashTableSize: %d\n", expireHashTableSize);
+                }
                 default -> {
                     if (databaseNumber == null) {
                         //?
                     }
                     int valueType = opcode;
-                    long expiration = -1;
+                    Long expiration = null;
                     if (opcode == RdbConstants.P_EXPIRE_T) {
                         expiration = readUnsignedLong();
                         valueType = readUnsignedByte();
@@ -127,7 +133,7 @@ public class RdbParser {
     }
 
     private int parseVersion() throws IOException {
-        final var version = new String(inputStream.readNBytes(3));
+        final var version = new String(inputStream.readNBytes(4));
         return Integer.parseInt(version);
     }
 }

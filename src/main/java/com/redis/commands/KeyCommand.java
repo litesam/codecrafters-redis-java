@@ -25,7 +25,7 @@ public class KeyCommand implements Command {
         StringBuilder response = new StringBuilder();
 
         response.append(RespConstants.ARRAY_PREFIX)
-                .append(matchingKeys.size())
+                .append(matchingKeys.isEmpty() ? "-1" : matchingKeys.size())
                 .append(RespConstants.CR_LF);
 
         for (String key : matchingKeys) {
