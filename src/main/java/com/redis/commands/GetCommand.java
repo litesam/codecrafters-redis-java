@@ -20,7 +20,8 @@ public class GetCommand implements Command {
         var key = args.getFirst();
         var value = dataStore.get(key);
         if (value == null) {
-            outputStream.write((RespConstants.BULK_STRING_PREFIX + "-1" + RespConstants.CR_LF).getBytes());
+            String response = String.valueOf(RespConstants.BULK_STRING_PREFIX) + "-1" + RespConstants.CR_LF;
+            outputStream.write(response.getBytes());
         } else {
             String response = String.valueOf(RespConstants.BULK_STRING_PREFIX) + value.length()
                     + RespConstants.CR_LF + value + RespConstants.CR_LF;
