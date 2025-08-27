@@ -22,6 +22,10 @@ public class DataStore {
         store.put(key, new DataEntry(value, expiryTimeMillis));
     }
 
+    public void set(String key, DataEntry entry) {
+        store.put(key, entry);
+    }
+
     public String get(String key) {
         DataEntry entry = store.get(key);
         if (entry == null) {

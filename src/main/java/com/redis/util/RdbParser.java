@@ -1,5 +1,6 @@
 package com.redis.util;
 
+import com.redis.DataEntry;
 import com.redis.DataStore;
 
 import java.io.IOException;
@@ -63,7 +64,8 @@ public class RdbParser {
                     final var value = readValue(valueType);
 
                     // Store the key-value pair with expiration in the DataStore
-                    dataStore.set(key, value, expiration);
+                    DataEntry record = new DataEntry(value, expiration);
+                    dataStore.set(key, record);
                 }
             }
         }
@@ -150,13 +152,13 @@ public class RdbParser {
 
     private long readLong() throws IOException {
         final var bytes = inputStream.readNBytes(8);
-        return ((long) bytes[7] << 56) |
-                ((long) (bytes[6] & 0xFF) << 48) |
-                ((long) (bytes[5] & 0xFF) << 40) |
-                ((long) (bytes[4] & 0xFF) << 32) |
-                ((long) (bytes[3] & 0xFF) << 24) |
-                ((long) (bytes[2] & 0xFF) << 16) |
-                ((long) (bytes[1] & 0xFF) << 8) |
-                ((long) (bytes[0] & 0xFF));
+        return ((long) bytes[0] << 56) |
+                ((long) (bytes[1] & 0xFF) << 48) |
+                ((long) (bytes[2] & 0xFF) << 40) |
+                ((long) (bytes[3] & 0xFF) << 32) |
+                ((long) (bytes[4] & 0xFF) << 24) |
+                ((long) (bytes[5] & 0xFF) << 16) |
+                ((long) (bytes[6] & 0xFF) << 8) |
+                ((long) (bytes[7] & 0xFF));
     }
 }
