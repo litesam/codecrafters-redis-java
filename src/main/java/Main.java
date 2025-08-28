@@ -9,7 +9,6 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
@@ -18,8 +17,9 @@ public class Main {
     public static void main(String[] args) {
         // You can use print statements as follows for debugging, they'll be visible when running tests.
         System.out.println("Logs from your program will appear here!");
+        Optional<String> portArg = ArgsParser.ArgsConstants.PORT.apply(args);
 
-        int port = 6379;
+        int port = Integer.parseInt(portArg.orElse("6379"));
         try (var serverSocket = new ServerSocket(port)) {
             serverSocket.setReuseAddress(true);
             Optional<String> dir = ArgsParser.ArgsConstants.DIR.apply(args);

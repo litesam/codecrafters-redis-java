@@ -5,10 +5,12 @@ import java.util.Optional;
 public class ArgsParser {
     public static final String DIR = "--dir";
     public static final String DBFILENAME = "--dbfilename";
+    public static final String PORT = "--port";
 
     public enum ArgsConstants {
         DIR(ArgsParser.DIR),
-        DBFILENAME(ArgsParser.DBFILENAME);
+        DBFILENAME(ArgsParser.DBFILENAME),
+        PORT(ArgsParser.PORT);
 
         private final String flag;
 
