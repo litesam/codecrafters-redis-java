@@ -2,6 +2,7 @@ import com.redis.CommandHandler;
 import com.redis.DataStore;
 import com.redis.RespParser;
 import com.redis.config.ConfigStore;
+import com.redis.config.InfoStore;
 import com.redis.util.ArgsParser;
 import com.redis.util.RdbParser;
 
@@ -29,6 +30,8 @@ public class Main {
             ConfigStore configStore = new ConfigStore();
             configStore.set(ArgsParser.DIR.substring(2), dirValue);
             configStore.set(ArgsParser.DBFILENAME.substring(2), dbfileName);
+            InfoStore infoStore = new InfoStore();
+            infoStore.set("replication", "role", "master");
             DataStore dataStore = new DataStore();
             RdbParser rdbParser;
             final var dbPath = Paths.get(dirValue, dbfileName);
@@ -41,20 +44,20 @@ public class Main {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Client connected: " + clientSocket.getInetAddress());
-                Thread.ofVirtual().start(() -> handleClient(clientSocket, dataStore, configStore));
+                Thread.ofVirtual().start(() -> handleClient(clientSocket, dataStore, configStore, infoStore));
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
         }
     }
 
-    private static void handleClient(Socket clientSocket, DataStore dataStore, ConfigStore configStore) {
+    private static void handleClient(Socket clientSocket, DataStore dataStore, ConfigStore configStore, InfoStore infoStore) {
         try (clientSocket;
              var outputStream = clientSocket.getOutputStream();
              var inputStream = clientSocket.getInputStream()
         ) {
             RespParser parser = new RespParser(inputStream);
-            CommandHandler commandHandler = new CommandHandler(dataStore, configStore);
+            CommandHandler commandHandler = new CommandHandler(dataStore, configStore, infoStore);
             while (true) {
                 List<String> commandParts = parser.parseCommand();
                 if (commandParts == null) {
