@@ -16,12 +16,14 @@ public class InfoStore {
     }
 
     public void set(String info, String key, String value) {
-        infoMap.putIfAbsent(info, new HashMap<>());
-        infoMap.get(info).putIfAbsent(key, value);
+        String section = info.toLowerCase();
+        String field = key.toLowerCase();
+        infoMap.computeIfAbsent(section, k -> new ConcurrentHashMap<>())
+                .put(field, value);
     }
 
     public Map<String, String> get(String info, String key) {
-        return infoMap.get(key.toLowerCase());
+        return infoMap.get(info.toLowerCase());
     }
 
     public Map<String, Map<String, String>> getMatchingInfos(String infoPattern, String pattern) {

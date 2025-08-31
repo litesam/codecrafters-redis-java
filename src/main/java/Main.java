@@ -25,13 +25,19 @@ public class Main {
             serverSocket.setReuseAddress(true);
             Optional<String> dir = ArgsParser.ArgsConstants.DIR.apply(args);
             Optional<String> db = ArgsParser.ArgsConstants.DBFILENAME.apply(args);
+            Optional<String> replicaOf = ArgsParser.ArgsConstants.REPLICAOF.apply(args);
             String dirValue = dir.orElse("/tmp/redis-files");
             String dbfileName = db.orElse("dump.rdb");
+
             ConfigStore configStore = new ConfigStore();
             configStore.set(ArgsParser.DIR.substring(2), dirValue);
             configStore.set(ArgsParser.DBFILENAME.substring(2), dbfileName);
             InfoStore infoStore = new InfoStore();
-            infoStore.set("replication", "role", "master");
+            if (replicaOf.isPresent() && !replicaOf.get().isBlank()) {
+                infoStore.set("replication", "role", "slave");
+            } else {
+                infoStore.set("replication", "role", "master");
+            }
             DataStore dataStore = new DataStore();
             RdbParser rdbParser;
             final var dbPath = Paths.get(dirValue, dbfileName);

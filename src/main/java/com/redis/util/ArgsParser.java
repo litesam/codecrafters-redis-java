@@ -6,11 +6,13 @@ public class ArgsParser {
     public static final String DIR = "--dir";
     public static final String DBFILENAME = "--dbfilename";
     public static final String PORT = "--port";
+    public static final String REPLICAOF = "--replicaof";
 
     public enum ArgsConstants {
         DIR(ArgsParser.DIR),
         DBFILENAME(ArgsParser.DBFILENAME),
-        PORT(ArgsParser.PORT);
+        PORT(ArgsParser.PORT),
+        REPLICAOF(ArgsParser.REPLICAOF);
 
         private final String flag;
 

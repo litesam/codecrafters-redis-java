@@ -33,6 +33,11 @@ public class InfoCommand implements Command {
                 sb.append(RespConstants.CR_LF);
             }
         }
+        sb.append("master_replid:")
+                .append("8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb")
+                .append(RespConstants.CR_LF)
+                .append("master_repl_offset:0")
+                .append(RespConstants.CR_LF);
         String result = RespConstants.BULK_STRING_PREFIX + String.valueOf(sb.length()) +
                 RespConstants.CR_LF +
                 sb + RespConstants.CR_LF;
