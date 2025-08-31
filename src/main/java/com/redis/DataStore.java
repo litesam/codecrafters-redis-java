@@ -35,7 +35,7 @@ public class DataStore {
             store.remove(key);
             return null;
         }
-        return entry.getValue();
+        return entry.value();
     }
 
     public boolean containsKey(String key) {

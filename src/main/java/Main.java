@@ -3,6 +3,7 @@ import com.redis.DataStore;
 import com.redis.RespParser;
 import com.redis.config.ConfigStore;
 import com.redis.config.InfoStore;
+import com.redis.replication.ReplicaHandshake;
 import com.redis.util.ArgsParser;
 import com.redis.util.RdbParser;
 
@@ -35,10 +36,17 @@ public class Main {
             InfoStore infoStore = new InfoStore();
             if (replicaOf.isPresent() && !replicaOf.get().isBlank()) {
                 infoStore.set("replication", "role", "slave");
+                // Start replica handshake to the master in a virtual thread
+                String replicaOfVal = replicaOf.get().trim();
+                String[] parts = replicaOfVal.split("\\s+");
+                if (parts.length >= 2) {
+                    String masterHost = parts[0];
+                    int masterPort = Integer.parseInt(parts[1]);
+                    Thread.ofVirtual().start(() -> ReplicaHandshake.start(masterHost, masterPort, port));
+                }
             } else {
                 infoStore.set("replication", "role", "master");
-            }
-            DataStore dataStore = new DataStore();
+            }            DataStore dataStore = new DataStore();
             RdbParser rdbParser;
             final var dbPath = Paths.get(dirValue, dbfileName);
             if (Files.exists(dbPath)) {

@@ -10,6 +10,9 @@ import java.util.Map;
 
 public class InfoCommand implements Command {
     private static final String NAME = "INFO";
+    private static final String SUBCOMMAND_REPLICATION = "REPLICATION";
+    private static final String DEFAULT_MASTER_REPL_ID = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
+    private static final String DEFAULT_MASTER_REPL_OFFSET = "0";
 
     private final InfoStore infoStore;
 
@@ -20,32 +23,60 @@ public class InfoCommand implements Command {
     @Override
     public void execute(List<String> args, OutputStream outputStream) throws IOException {
         String subCommand = args.getFirst().toUpperCase();
-        Map<String, Map<String, String>> resultMap = switch (subCommand) {
-            case "REPLICATION" -> infoStore.getMatchingInfos("replication", "*");
-            default -> infoStore.getMatchingInfos("*", "*");
-        };
-        String header = makeHeader();
-        StringBuilder sb = new StringBuilder();
-        sb.append(header);
-        for (Map.Entry<String, Map<String, String>> entry : resultMap.entrySet()) {
-            for (Map.Entry<String, String> valuesEntry : entry.getValue().entrySet()) {
-                sb.append(valuesEntry.getKey()).append(":").append(valuesEntry.getValue());
-                sb.append(RespConstants.CR_LF);
-            }
-        }
-        sb.append("master_replid:")
-                .append("8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb")
-                .append(RespConstants.CR_LF)
-                .append("master_repl_offset:0")
-                .append(RespConstants.CR_LF);
-        String result = RespConstants.BULK_STRING_PREFIX + String.valueOf(sb.length()) +
-                RespConstants.CR_LF +
-                sb + RespConstants.CR_LF;
-        outputStream.write(result.getBytes());
+        Map<String, Map<String, String>> infos = fetchInfos(subCommand);
+        byte[] bodyBytes = buildBodyBytes(subCommand, infos);
+        byte[] prefixBytes = buildRespBulkPrefix(bodyBytes.length);
+        outputStream.write(prefixBytes);
+        outputStream.write(bodyBytes);
+        outputStream.write(RespConstants.CR_LF.getBytes());
     }
 
-    private String makeHeader() {
-        return "# Replication" + RespConstants.CR_LF;
+    private Map<String, Map<String, String>> fetchInfos(String subCommand) {
+        return switch (subCommand) {
+            case SUBCOMMAND_REPLICATION -> infoStore.getMatchingInfos("replication", "*");
+            default -> infoStore.getMatchingInfos("*", "*");
+        };
+    }
+
+    private byte[] buildBodyBytes(String subCommand, Map<String, Map<String, String>> infos) {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(makeHeader(subCommand));
+
+        if (infos != null) {
+            for (Map<String, String> section : infos.values()) {
+                for (Map.Entry<String, String> e : section.entrySet()) {
+                    sb.append(e.getKey())
+                            .append(':')
+                            .append(e.getValue())
+                            .append(RespConstants.CR_LF);
+                }
+            }
+        }
+
+        sb.append("master_replid:")
+                .append(DEFAULT_MASTER_REPL_ID)
+                .append(RespConstants.CR_LF)
+                .append("master_repl_offset:")
+                .append(DEFAULT_MASTER_REPL_OFFSET)
+                .append(RespConstants.CR_LF);
+
+        return sb.toString().getBytes();
+    }
+
+    private byte[] buildRespBulkPrefix(int bodyByteLength) {
+        String prefix = "%c%d%s".formatted(
+                RespConstants.BULK_STRING_PREFIX,
+                bodyByteLength,
+                RespConstants.CR_LF);
+        return prefix.getBytes();
+    }
+
+    private String makeHeader(String subCommand) {
+        return switch (subCommand) {
+            case SUBCOMMAND_REPLICATION -> "# Replication" + RespConstants.CR_LF;
+            default -> "# Replication" + RespConstants.CR_LF;
+        };
     }
 
     @Override

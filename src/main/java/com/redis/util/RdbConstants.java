@@ -1,6 +1,6 @@
 package com.redis.util;
 
-public class RdbConstants {
+public final class RdbConstants {
 
     public static final byte DATABASE_START = (byte) 0xFE;
     public static final byte END_OF_FILE = (byte) 0xFF;
