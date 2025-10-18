@@ -3,15 +3,18 @@ package com.redis;
 import com.redis.commands.*;
 import com.redis.config.ConfigStore;
 import com.redis.config.InfoStore;
+import com.redis.replication.ReplicaManager;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class CommandHandler {
     private final Map<String, Command> commands;
+    private static final Set<String> WRITE_COMMANDS = Set.of("SET", "DEL");
 
     public CommandHandler(DataStore dataStore, ConfigStore configStore, InfoStore infoStore) {
         commands = new HashMap<>();
@@ -41,5 +44,23 @@ public class CommandHandler {
 
         Command command = commands.get(commandName);
         command.execute(args, outputStream);
+        
+        if (WRITE_COMMANDS.contains(commandName)) {
+            byte[] respCommand = encodeAsRespArray(commandParts);
+            ReplicaManager.getInstance().propagateCommand(respCommand);
+        }
+    }
+    
+    private byte[] encodeAsRespArray(List<String> parts) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(RespConstants.ARRAY_PREFIX).append(parts.size()).append(RespConstants.CR_LF);
+        for (String part : parts) {
+            sb.append(RespConstants.BULK_STRING_PREFIX)
+              .append(part.length())
+              .append(RespConstants.CR_LF)
+              .append(part)
+              .append(RespConstants.CR_LF);
+        }
+        return sb.toString().getBytes();
     }
 }

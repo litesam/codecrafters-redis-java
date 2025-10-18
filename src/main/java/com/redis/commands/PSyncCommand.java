@@ -1,6 +1,7 @@
 package com.redis.commands;
 
 import com.redis.RespConstants;
+import com.redis.replication.ReplicaManager;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,6 +31,9 @@ public class PSyncCommand implements Command {
         String rdbPrefix = "$" + EMPTY_RDB.length + RespConstants.CR_LF;
         outputStream.write(rdbPrefix.getBytes());
         outputStream.write(EMPTY_RDB);
+        outputStream.flush();
+        
+        ReplicaManager.getInstance().addReplica(outputStream);
     }
 
     @Override
