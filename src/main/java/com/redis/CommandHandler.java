@@ -22,6 +22,8 @@ public class CommandHandler {
         registerCommand(new ConfigCommand(configStore));
         registerCommand(new KeyCommand(dataStore));
         registerCommand(new InfoCommand(infoStore));
+        registerCommand(new ReplConfCommand());
+        registerCommand(new PSyncCommand());
     }
 
     private void registerCommand(Command command) {

@@ -29,6 +29,9 @@ public final class ReplicaHandshake {
                         writeArray(out, "REPLCONF", "listening-port", String.valueOf(listeningPort));
                         readOneLine(in);
 
+					writeArray(out, "REPLCONF", "capa", "psync2");
+					readOneLine(in);
+
                         writeArray(out, "PSYNC", "?", "-1");
 
                         readOneLine(in);
